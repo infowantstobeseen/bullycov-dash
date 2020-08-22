@@ -12,7 +12,7 @@ import requests
 data_url = "https://raw.githubusercontent.com/infowantstobeseen/bullycov-scrape/main/bullycov.json"
 
 # Our template we'll format w/ Python string formatting
-base_html = """<p style="font-size: 21px">Last week, the Longest Health center tested and processed 
+base_html = """<p style="font-size: 21px; margin: none; padding: none;">Last week, the Longest Health Center tested and processed 
     <span id="total">{total}</span> students and employees for COVID. Of those, 
     <span id="student_positive">{student_positive}</span> came back positive 
     (<span id="student_trend">{student_trend}</span> from last week) and 
