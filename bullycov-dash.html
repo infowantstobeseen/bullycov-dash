@@ -1,13 +1,33 @@
 <p style="font-size: 21px; margin: none; padding: none;">Last week, the Longest Health Center tested and processed
-<span id="total">254</span> students and employees for COVID. Of those,
-<span id="student_positive">14 students</span> came back positive
-(<span id="student_trend">unchanged</span> from last week) and
-<span id="employee_positive">0 employees</span> came back positive
-(<span id="employee_trend">unchanged</span> from last week). The
-<canvas id="positivity_total" width="1" height="1"></canvas>overall positivity rate is
-<span id="overall_positivity" style="color: #C33">5.5%</span> whereas the
-<canvas id="positivity_student" width="1" height="1"></canvas>student and
-<canvas id="positivity_employee" width="1" height="1"></canvas>employee
-positivity rates are <span id="student_positivity" style="color: #C33">6.5%</span>
-and <span id="employee_positivity" style="color: rgb(44,160,44)">0.0%</span>
+<span id="total">536</span> students and employees for COVID. Of those,
+<span id="student_positive">70 students</span> came back positive
+(<span id="student_trend">increased</span> from last week) and
+<span id="employee_positive">1 employee</span> came back positive
+(<span id="employee_trend">increased</span> from last week). The
+<canvas id="positivity_total" height=21 width=21></canvas><script>const canvas_positivity_total = document.getElementById('positivity_total');
+const context_positivity_total = canvas_positivity_total.getContext('2d');
+context_positivity_total.beginPath();
+context_positivity_total.strokeStyle = "#C33";
+context_positivity_total.moveTo(0.5, 21.5);
+context_positivity_total.lineTo(21.5, 15.936567164179106);
+context_positivity_total.stroke();
+</script>overall positivity rate is
+<span id="overall_positivity" style="color: #C33">13.2%</span> whereas the
+<canvas id="positivity_student" height=21 width=21></canvas><script>const canvas_positivity_student = document.getElementById('positivity_student');
+const context_positivity_student = canvas_positivity_student.getContext('2d');
+context_positivity_student.beginPath();
+context_positivity_student.strokeStyle = "#900";
+context_positivity_student.moveTo(0.5, 21.5);
+context_positivity_student.lineTo(21.5, 14.966666666666667);
+context_positivity_student.stroke();
+</script>student and <canvas id="positivity_employee" height=21 width=21></canvas><script>const canvas_positivity_employee = document.getElementById('positivity_employee');
+const context_positivity_employee = canvas_positivity_employee.getContext('2d');
+context_positivity_employee.beginPath();
+context_positivity_employee.strokeStyle = "rgb(44,160,44)";
+context_positivity_employee.moveTo(0.5, 21.5);
+context_positivity_employee.lineTo(21.5, 21.011627906976745);
+context_positivity_employee.stroke();
+</script>employee
+positivity rates are <span id="student_positivity" style="color: #900; font-weight: bold">15.6%</span>
+and <span id="employee_positivity" style="color: rgb(44,160,44)">1.2%</span>
 respectively.</p>

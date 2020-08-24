@@ -8,6 +8,8 @@ import json
 
 import requests
 
+from lines import generate_canvas
+
 # Data location
 data_url = "https://raw.githubusercontent.com/infowantstobeseen/bullycov-scrape/main/bullycov.json"
 
@@ -18,10 +20,9 @@ base_html = """<p style="font-size: 21px; margin: none; padding: none;">Last wee
     (<span id="student_trend">{student_trend}</span> from last week) and 
     <span id="employee_positive">{employee_positive}</span> came back positive
     (<span id="employee_trend">{employee_trend}</span> from last week). The 
-    <canvas id="positivity_total" width="1" height="1">{positivity_total}</canvas>overall positivity rate is 
+    {positivity_total}overall positivity rate is 
     <span id="overall_positivity" style="{overall_positivity_style}">{overall_positivity}</span> whereas the 
-    <canvas id="positivity_student" width="1" height="1">{positivity_student}</canvas>student and 
-    <canvas id="positivity_employee" width="1" height="1">{positivity_employee}</canvas>employee 
+    {positivity_student}student and {positivity_employee}employee 
     positivity rates are <span id="student_positivity" style="{student_positivity_style}">{student_positivity}</span> 
     and <span id="employee_positivity" style="{employee_positivity_style}">{employee_positivity}</span> 
     respectively.</p>
@@ -40,13 +41,26 @@ def format_plural(value, base):
     else:
         return f"1 {base}"
 
-def format_trend(data, base):
+def format_trend(data, key):
     if len(data) < 2:
         return "unchanged"
     else:
-        # TODO
-        pass
+        penultimate, last = [d[key] for d in data[-2:]]
+        if penultimate < last:
+            return "increased"
+        elif penultimate == last:
+            return "unchanged"
+        else:
+            return "decreased"
 
+def color(value):
+    if value < 0.05:
+        return "rgb(44,160,44)"
+    elif value < 0.15:
+        return "#C33"
+    else:
+        return "#900"
+     
 def format_positivity(value):
     """Format positivity.
 
@@ -60,11 +74,11 @@ def format_positivity(value):
     """
     positivity = f"{value:.1%}"
     if value < 0.05:
-        style = "color: rgb(44,160,44)"
+        style = f"color: {color(value)}"
     elif value < 0.15:
-        style = "color: #C33"
+        style = f"color: {color(value)}"
     else:
-        style = "color: #900; font-weight: bold"
+        style = f"color: {color(value)}; font-weight: bold"
     return positivity, style
 
 def format_data(data):
@@ -76,9 +90,9 @@ def format_data(data):
     to_format = {}
     to_format["total"]=employees_total + students_total
     to_format["student_positive"]=format_plural(last["students_positive"], "student")
-    to_format["student_trend"]=format_trend(data, "student")
+    to_format["student_trend"]=format_trend(data, "students_positive")
     to_format["employee_positive"]=format_plural(last["employees_positive"], "employee")
-    to_format["employee_trend"]=format_trend(data, "employee")
+    to_format["employee_trend"]=format_trend(data, "employees_positive")
     positivity, style = format_positivity((last["students_positive"] + last["employees_positive"])
                                          /(employees_total + students_total))
     to_format["overall_positivity_style"]=style
@@ -89,10 +103,30 @@ def format_data(data):
     positivity, style = format_positivity(last["employees_positive"] / employees_total)
     to_format["employee_positivity_style"]=style
     to_format["employee_positivity"]=positivity
-    return "\n".join(line.strip() for line in base_html.format(positivity_total="", 
-                                                               positivity_student="", 
-                                                               positivity_employee="", 
-                                                               **to_format).split('\n'))
+    to_format["positivity_total"]=generate_canvas(
+        "positivity_total", 
+        [(i, (data[i]["employees_positive"] + data[i]["students_positive"]) 
+             / (data[i]["employees_positive"] + data[i]["students_positive"] + data[i]["employees_negative"] + data[i]["students_negative"])) 
+        for i in range(len(data))],
+        [color((datum["employees_positive"] + datum["students_positive"]) 
+             / (datum["employees_positive"] + datum["students_positive"] + datum["employees_negative"] + datum["students_negative"])) 
+        for datum in data],
+        21)
+    to_format["positivity_student"]=generate_canvas(
+        "positivity_student", 
+        [(i, data[i]["students_positive"] / (data[i]["students_positive"] + data[i]["students_negative"])) 
+        for i in range(len(data))],
+        [color(datum["students_positive"] / (datum["students_positive"] +  datum["students_negative"])) 
+        for datum in data],
+        21)
+    to_format["positivity_employee"]=generate_canvas(
+        "positivity_employee", 
+        [(i, data[i]["employees_positive"] / (data[i]["employees_positive"] + data[i]["employees_negative"])) 
+        for i in range(len(data))],
+        [color(datum["employees_positive"] / (datum["employees_positive"] +  datum["employees_negative"])) 
+        for datum in data],
+        21)
+    return "\n".join(line.strip() for line in base_html.format(**to_format).split('\n'))
 
 if __name__ == "__main__":
     data = pull_data()
