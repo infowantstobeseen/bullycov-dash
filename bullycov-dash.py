@@ -8,7 +8,7 @@ import json
 
 import requests
 
-from lines import generate_canvas
+from lines import generate_canvas, bank_data
 
 # Data location
 data_url = "https://raw.githubusercontent.com/infowantstobeseen/bullycov-scrape/main/bullycov.json"
@@ -103,29 +103,34 @@ def format_data(data):
     positivity, style = format_positivity(last["employees_positive"] / employees_total)
     to_format["employee_positivity_style"]=style
     to_format["employee_positivity"]=positivity
+
+    # Generate the three images. Put into the right format, find which is
+    # longest, then fix to that size
+    total_data = [(i, (data[i]["employees_positive"] + data[i]["students_positive"]) 
+        / (data[i]["employees_positive"] + data[i]["students_positive"] + data[i]["employees_negative"] + data[i]["students_negative"])) 
+            for i in range(len(data))]
+    student_data = [(i, data[i]["students_positive"] / (data[i]["students_positive"] + data[i]["students_negative"])) 
+        for i in range(len(data))]
+    employee_data = [(i, data[i]["employees_positive"] / (data[i]["employees_positive"] + data[i]["employees_negative"])) 
+        for i in range(len(data))]
+
+    aspect = max(bank_data(total_data), bank_data(student_data), bank_data(employee_data))
+
     to_format["positivity_total"]=generate_canvas(
         "positivity_total", 
-        [(i, (data[i]["employees_positive"] + data[i]["students_positive"]) 
-             / (data[i]["employees_positive"] + data[i]["students_positive"] + data[i]["employees_negative"] + data[i]["students_negative"])) 
-        for i in range(len(data))],
-        [color((datum["employees_positive"] + datum["students_positive"]) 
-             / (datum["employees_positive"] + datum["students_positive"] + datum["employees_negative"] + datum["students_negative"])) 
-        for datum in data],
-        21)
+        total_data,
+        [color(datum[1]) for datum in total_data],
+        21, width=21*aspect)
     to_format["positivity_student"]=generate_canvas(
         "positivity_student", 
-        [(i, data[i]["students_positive"] / (data[i]["students_positive"] + data[i]["students_negative"])) 
-        for i in range(len(data))],
-        [color(datum["students_positive"] / (datum["students_positive"] +  datum["students_negative"])) 
-        for datum in data],
-        21)
+        student_data,
+        [color(datum[1]) for datum in student_data],
+        21, width=21*aspect)
     to_format["positivity_employee"]=generate_canvas(
         "positivity_employee", 
-        [(i, data[i]["employees_positive"] / (data[i]["employees_positive"] + data[i]["employees_negative"])) 
-        for i in range(len(data))],
-        [color(datum["employees_positive"] / (datum["employees_positive"] +  datum["employees_negative"])) 
-        for datum in data],
-        21)
+        employee_data,
+        [color(datum[1]) for datum in employee_data],
+        21, width=21*aspect)
     return "\n".join(line.strip() for line in base_html.format(**to_format).split('\n'))
 
 if __name__ == "__main__":
